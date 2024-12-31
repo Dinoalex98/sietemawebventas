@@ -3,7 +3,6 @@ import {
   Box,
   Grid,
   Card,
-  CardContent,
   Typography,
 } from "@mui/material";
 import {

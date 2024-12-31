@@ -14,9 +14,19 @@ import {
   DialogTitle,
   DialogContent,
 } from "@mui/material";
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+} from "@mui/icons-material";
+import Swal from "sweetalert2";
 import CategoryForm from "./categoryForm";
-import { fetchCategories, createCategory, updateCategory, deleteCategory } from "../../services/categoryService";
+import {
+  fetchCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from "../../services/categoryService";
 
 interface Category {
   _id: string;
@@ -37,6 +47,7 @@ const CategoryList: React.FC = () => {
         setCategories(data);
       } catch (error) {
         console.error("Error al cargar las categorías:", error);
+        Swal.fire("Error", "No se pudieron cargar las categorías.", "error");
       }
     };
     loadCategories();
@@ -58,26 +69,46 @@ const CategoryList: React.FC = () => {
         // Actualizar categoría existente
         const updatedCategory = await updateCategory(currentCategory._id, data);
         setCategories((prev) =>
-          prev.map((category) => (category._id === updatedCategory._id ? updatedCategory : category))
+          prev.map((category) =>
+            category._id === updatedCategory._id ? updatedCategory : category
+          )
         );
+        Swal.fire("¡Editado!", "La categoría ha sido actualizada.", "success");
       } else {
         // Crear nueva categoría
         const newCategory = await createCategory(data);
         setCategories((prev) => [...prev, newCategory]);
+        Swal.fire("¡Creado!", "La categoría ha sido creada exitosamente.", "success");
       }
       handleClose();
     } catch (error) {
       console.error("Error al guardar la categoría:", error);
+      Swal.fire("Error", "No se pudo guardar la categoría.", "error");
     }
   };
 
   const handleDeleteCategory = async (id: string) => {
-    try {
-      await deleteCategory(id);
-      setCategories((prev) => prev.filter((category) => category._id !== id));
-    } catch (error) {
-      console.error("Error al eliminar la categoría:", error);
-    }
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "No podrás revertir esto",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Eliminar",
+      cancelButtonText: "Cancelar",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deleteCategory(id);
+          setCategories((prev) => prev.filter((category) => category._id !== id));
+          Swal.fire("¡Eliminado!", "La categoría ha sido eliminada.", "success");
+        } catch (error) {
+          console.error("Error al eliminar la categoría:", error);
+          Swal.fire("Error", "No se pudo eliminar la categoría.", "error");
+        }
+      }
+    });
   };
 
   return (
@@ -113,36 +144,45 @@ const CategoryList: React.FC = () => {
         <Table>
           <TableHead>
             <TableRow sx={{ backgroundColor: "#333333" }}>
-              <TableCell sx={{ color: "#fff" }}>Nombre</TableCell>
-              <TableCell sx={{ color: "#fff" }}>Descripción</TableCell>
-              <TableCell sx={{ color: "#fff" }}>Estado</TableCell>
-              <TableCell sx={{ color: "#fff" }}>Acciones</TableCell>
+              <TableCell sx={{ color: "#fff", textAlign: "center" }}>N°</TableCell>
+              <TableCell sx={{ color: "#fff", textAlign: "center" }}>Nombre</TableCell>
+              <TableCell sx={{ color: "#fff", textAlign: "center" }}>Descripción</TableCell>
+              <TableCell sx={{ color: "#fff", textAlign: "center" }}>Estado</TableCell>
+              <TableCell sx={{ color: "#fff", textAlign: "center" }}>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {categories.map((category) => (
-              <TableRow key={category._id} sx={{ "&:hover": { backgroundColor: "#2b2b2b" } }}>
-                <TableCell sx={{ color: "#fff" }}>{category.name}</TableCell>
-                <TableCell sx={{ color: "#fff" }}>{category.description}</TableCell>
-                <TableCell sx={{ color: "#fff" }}>{category.state ? "Activo" : "Inactivo"}</TableCell>
-                <TableCell>
+            {categories.map((category, index) => (
+              <TableRow
+                key={category._id}
+                sx={{ "&:hover": { backgroundColor: "#2b2b2b" } }}
+              >
+                <TableCell sx={{ color: "#fff", textAlign: "center" }}>{index + 1}</TableCell>
+                <TableCell sx={{ color: "#fff", textAlign: "center" }}>{category.name}</TableCell>
+                <TableCell sx={{ color: "#fff", textAlign: "center" }}>{category.description}</TableCell>
+                <TableCell sx={{ color: "#fff", textAlign: "center" }}>{category.state ? "Activo" : "Inactivo"}</TableCell>
+                <TableCell sx={{ textAlign: "center" }}>
                   <Button
-                    size="small"
+                    size="medium"
                     variant="text"
-                    startIcon={<EditIcon />}
                     onClick={() => handleOpen(category)}
-                    sx={{ color: "#25d162" }}
+                    sx={{
+                      color: "#25d162",
+                      "&:hover": { color: "rgb(144,238,144)" },
+                    }}
                   >
-                    Editar
+                    <EditIcon sx={{ fontSize: "28px" }} />
                   </Button>
                   <Button
-                    size="small"
+                    size="medium"
                     variant="text"
-                    startIcon={<DeleteIcon />}
                     onClick={() => handleDeleteCategory(category._id)}
-                    sx={{ color: "#ff4d4d" }}
+                    sx={{
+                      color: "#ff4d4d",
+                      "&:hover": { color: "rgb(255,99,71)" },
+                    }}
                   >
-                    Eliminar
+                    <DeleteIcon sx={{ fontSize: "28px" }} />
                   </Button>
                 </TableCell>
               </TableRow>

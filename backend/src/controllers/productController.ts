@@ -50,10 +50,7 @@ export const createProduct = async (req: Request, res: Response): Promise<Respon
 // Obtener todos los productos
 export const getProducts = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const products = await Product.find()
-      .populate("brand", "name") // Obtener solo el nombre de la marca
-      .populate("category", "name"); // Obtener solo el nombre de la categoría
-
+    const products = await Product.find(); // Los nombres ya están almacenados directamente
     return res.status(200).json(products);
   } catch (error) {
     console.error("Error al obtener los productos:", error);
@@ -63,6 +60,7 @@ export const getProducts = async (req: Request, res: Response): Promise<Response
     });
   }
 };
+
 
 
 

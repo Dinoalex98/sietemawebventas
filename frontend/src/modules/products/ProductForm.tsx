@@ -9,6 +9,7 @@ import {
   InputLabel,
   Switch,
   FormControlLabel,
+  SelectChangeEvent, // Importa SelectChangeEvent
 } from "@mui/material";
 import { fetchBrands } from "../../services/brandService";
 import { fetchCategories } from "../../services/categoryService";
@@ -48,7 +49,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, initialData }) => {
   const [brands, setBrands] = useState<{ _id: string; name: string }[]>([]);
   const [categories, setCategories] = useState<{ _id: string; name: string }[]>([]);
 
-  // Cargar marcas y categorías al montar el componente
   useEffect(() => {
     const loadBrandsAndCategories = async () => {
       try {
@@ -64,30 +64,26 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, initialData }) => {
     loadBrandsAndCategories();
   }, []);
 
-  // Manejar cambios en los campos del formulario
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // Manejar el cambio de los select
-  const handleSelectChange = (
-    e: React.ChangeEvent<{ name?: string; value: unknown }>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     if (name) {
-      setFormData((prev) => ({ ...prev, [name]: value as string }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
-  // Manejar el cambio del interruptor de estado
+  const handleSelectChange = (e: SelectChangeEvent<string>) => {
+    const { name, value } = e.target;
+    if (name) {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
   const handleSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, state: e.target.checked }));
   };
 
-  // Manejar envío del formulario
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
@@ -113,9 +109,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, initialData }) => {
           labelId="brand-select-label"
           name="brand"
           value={formData.brand}
-          onChange={(e) =>
-            setFormData((prev) => ({ ...prev, brand: e.target.value as string }))
-          }
+          onChange={handleSelectChange} // Cambia aquí el evento a handleSelectChange
         >
           {brands.map((brand) => (
             <MenuItem key={brand._id} value={brand._id}>
@@ -130,9 +124,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, initialData }) => {
           labelId="category-select-label"
           name="category"
           value={formData.category}
-          onChange={(e) =>
-            setFormData((prev) => ({ ...prev, category: e.target.value as string }))
-          }
+          onChange={handleSelectChange} // Cambia aquí el evento a handleSelectChange
         >
           {categories.map((category) => (
             <MenuItem key={category._id} value={category._id}>

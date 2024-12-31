@@ -14,9 +14,19 @@ import {
   DialogTitle,
   DialogContent,
 } from "@mui/material";
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+} from "@mui/icons-material";
+import Swal from "sweetalert2";
 import BrandForm from "./brandForm";
-import { fetchBrands, createBrand, updateBrand, deleteBrand } from "../../services/brandService";
+import {
+  fetchBrands,
+  createBrand,
+  updateBrand,
+  deleteBrand,
+} from "../../services/brandService";
 
 interface Brand {
   _id: string;
@@ -60,24 +70,42 @@ const BrandList: React.FC = () => {
         setBrands((prev) =>
           prev.map((brand) => (brand._id === updatedBrand._id ? updatedBrand : brand))
         );
+        Swal.fire("¡Editado!", "La marca ha sido actualizada.", "success");
       } else {
         // Crear nueva marca
         const newBrand = await createBrand(data);
         setBrands((prev) => [...prev, newBrand]);
+        Swal.fire("¡Creado!", "La marca ha sido creada exitosamente.", "success");
       }
       handleClose();
     } catch (error) {
       console.error("Error al guardar la marca:", error);
+      Swal.fire("Error", "No se pudo guardar la marca.", "error");
     }
   };
 
   const handleDeleteBrand = async (id: string) => {
-    try {
-      await deleteBrand(id);
-      setBrands((prev) => prev.filter((brand) => brand._id !== id));
-    } catch (error) {
-      console.error("Error al eliminar la marca:", error);
-    }
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "No podrás revertir esto",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Eliminar",
+      cancelButtonText: "Cancelar",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deleteBrand(id);
+          setBrands((prev) => prev.filter((brand) => brand._id !== id));
+          Swal.fire("¡Eliminado!", "La marca ha sido eliminada.", "success");
+        } catch (error) {
+          console.error("Error al eliminar la marca:", error);
+          Swal.fire("Error", "No se pudo eliminar la marca.", "error");
+        }
+      }
+    });
   };
 
   return (
@@ -113,36 +141,49 @@ const BrandList: React.FC = () => {
         <Table>
           <TableHead>
             <TableRow sx={{ backgroundColor: "#333333" }}>
-              <TableCell sx={{ color: "#fff" }}>Nombre</TableCell>
-              <TableCell sx={{ color: "#fff" }}>Descripción</TableCell>
-              <TableCell sx={{ color: "#fff" }}>Estado</TableCell>
-              <TableCell sx={{ color: "#fff" }}>Acciones</TableCell>
+              <TableCell sx={{ color: "#fff", textAlign: "center" }}>N°</TableCell>
+              <TableCell sx={{ color: "#fff", textAlign: "center" }}>Nombre</TableCell>
+              <TableCell sx={{ color: "#fff", textAlign: "" }}>Descripción</TableCell>
+              <TableCell sx={{ color: "#fff", textAlign: "center" }}>Estado</TableCell>
+              <TableCell sx={{ color: "#fff", textAlign: "center" }}>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {brands.map((brand) => (
-              <TableRow key={brand._id} sx={{ "&:hover": { backgroundColor: "#2b2b2b" } }}>
-                <TableCell sx={{ color: "#fff" }}>{brand.name}</TableCell>
-                <TableCell sx={{ color: "#fff" }}>{brand.description}</TableCell>
-                <TableCell sx={{ color: "#fff" }}>{brand.state ? "Activo" : "Inactivo"}</TableCell>
-                <TableCell>
+            {brands.map((brand, index) => (
+              <TableRow
+                key={brand._id}
+                sx={{
+                  "&:hover": { backgroundColor: "#2b2b2b" },
+                }}
+              >
+                <TableCell sx={{ textAlign: "center", color: "#fff" }}>{index + 1}</TableCell>
+                <TableCell sx={{ color: "#fff", textAlign: "center" }}>{brand.name}</TableCell>
+                <TableCell sx={{ color: "#fff", textAlign: "" }}>{brand.description}</TableCell>
+                <TableCell sx={{ color: "#fff", textAlign: "center" }}>
+                  {brand.state ? "Activo" : "Inactivo"}
+                </TableCell>
+                <TableCell sx={{ textAlign: "center" }}>
                   <Button
-                    size="small"
+                    size="medium"
                     variant="text"
-                    startIcon={<EditIcon />}
                     onClick={() => handleOpen(brand)}
-                    sx={{ color: "#25d162" }}
+                    sx={{
+                      color: "#25d162",
+                      "&:hover": { color: "rgb(144,238,144)" },
+                    }}
                   >
-                    Editar
+                    <EditIcon sx={{ fontSize: "28px" }} />
                   </Button>
                   <Button
-                    size="small"
+                    size="medium"
                     variant="text"
-                    startIcon={<DeleteIcon />}
                     onClick={() => handleDeleteBrand(brand._id)}
-                    sx={{ color: "#ff4d4d" }}
+                    sx={{
+                      color: "#ff4d4d",
+                      "&:hover": { color: "rgb(255,99,71)" },
+                    }}
                   >
-                    Eliminar
+                    <DeleteIcon sx={{ fontSize: "28px" }} />
                   </Button>
                 </TableCell>
               </TableRow>
@@ -156,7 +197,14 @@ const BrandList: React.FC = () => {
         <DialogContent>
           <BrandForm
             onSubmit={handleSaveBrand}
-            initialData={currentBrand ? { name: currentBrand.name, description: currentBrand.description } : undefined}
+            initialData={
+              currentBrand
+                ? {
+                    name: currentBrand.name,
+                    description: currentBrand.description,
+                  }
+                : undefined
+            }
           />
         </DialogContent>
       </Dialog>
@@ -165,4 +213,5 @@ const BrandList: React.FC = () => {
 };
 
 export default BrandList;
+
 

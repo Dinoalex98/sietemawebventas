@@ -22,25 +22,33 @@ const ProductSchema: Schema<IProduct> = new Schema<IProduct>({
 
 // Middleware para asignar el nombre de la marca y la categoría
 ProductSchema.pre("save", async function (next) {
-  const Brand = mongoose.model("Brand");
-  const Category = mongoose.model("Category");
+  try {
+    const Brand = mongoose.model("Brand");
+    const Category = mongoose.model("Category");
 
-  // Busca la marca y categoría para asignar su nombre
-  if (this.isModified("brand")) {
-    const brandDoc = await Brand.findById(this.brand);
-    if (brandDoc) {
-      this.brand = brandDoc.name; // Solo guarda el nombre de la marca
+    // Busca la marca y categoría para asignar su nombre
+    if (this.isModified("brand")) {
+      const brandDoc = await Brand.findById(this.brand);
+      if (brandDoc) {
+        this.brand = brandDoc.name; // Solo guarda el nombre de la marca
+      }
+    }
+
+    if (this.isModified("category")) {
+      const categoryDoc = await Category.findById(this.category);
+      if (categoryDoc) {
+        this.category = categoryDoc.name; // Solo guarda el nombre de la categoría
+      }
+    }
+
+    next(); // Llama al siguiente middleware
+  } catch (error) {
+    if (error instanceof Error) {
+      next(error); // Pasa el error solo si es del tipo correcto
+    } else {
+      next(new Error("Error desconocido")); // Manejo de errores no esperados
     }
   }
-
-  if (this.isModified("category")) {
-    const categoryDoc = await Category.findById(this.category);
-    if (categoryDoc) {
-      this.category = categoryDoc.name; // Solo guarda el nombre de la categoría
-    }
-  }
-
-  next();
 });
 
 export default mongoose.model<IProduct>("Product", ProductSchema);
